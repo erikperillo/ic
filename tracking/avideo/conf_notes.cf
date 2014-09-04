@@ -1,0 +1,22 @@
+#hsv values
+hsv_low: 0 90 47
+hsv_upp: 179 180 230
+
+#camera index
+cam_index: 1
+
+#dimensions of frame
+frame_w: 600
+frame_h: 600
+
+#number of songs per square
+nsongs: 7
+
+#songs per se
+songs_upl: notes/C4_ACPIANO.wav notes/D4_ACPIANO.wav notes/E4_ACPIANO.wav notes/F4_ACPIANO.wav notes/G4_ACPIANO.wav notes/A4_ACPIANO.wav notes/B4_ACPIANO.wav  
+
+songs_upr: notes/Em5_CELLO.wav notes/F#m5_CELLO.wav notes/GM5_CELLO.wav notes/AM5_CELLO.wav notes/BM5_CELLO.wav notes/C#DIM6_CELLO.wav notes/D#DIM6_CELLO.wav
+
+songs_btl: notes/CM5_ORGAN.wav notes/Dm5_ORGAN.wav notes/Em5_ORGAN.wav notes/FM5_ORGAN.wav notes/GM5_ORGAN.wav notes/Am5_ORGAN.wav notes/BDIM5_ORGAN.wav
+
+songs_btr: notes/C4_ACGUITAR.wav notes/D4_ACGUITAR.wav notes/E4_ACGUITAR.wav notes/F4_ACGUITAR.wav notes/G4_ACGUITAR.wav notes/A4_ACGUITAR.wav notes/B4_ACGUITAR.wav 
