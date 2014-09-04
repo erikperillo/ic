@@ -1,17 +1,17 @@
 CC = g++
 LDEPDIR += `pkg-config opencv --cflags`
 LDEPLIB += `pkg-config opencv --libs` 
-NAME = test
-OBJS = grid.o test.o
 DEPS = grid.hpp
+
+all: obj
 
 obj: grid.o
 
-%.o: %.cpp $(LDEPDIR) $(LDEPLIB) $(DEPS)
-	$(CC) -c -o $@ $< $(LDEPDIR) $(LDEPLIB) 
+blob.o: grid.cpp $(DEPS) 
+	$(CC) -c -o grid.o grid.cpp 
 
-$(NAME): $(OBJS)
-	$(CC) -o $@ $^ $(LDEPDIR) $(LDEPLIB) 
+test: grid.o test.cpp
+	$(CC) -o test test.cpp grid.o $(LDEPDIR) $(LDEPLIB)  
 
 clean: 
 	rm -f $(NAME) *.o

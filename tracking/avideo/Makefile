@@ -3,6 +3,10 @@ LDEPDIR += `pkg-config opencv --cflags`
 LDEPLIB += `pkg-config opencv --libs` -lsfml-audio 
 NAME = avideo
 
+all: avideo
+
+obj: avideo.o
+
 %.o: %.cpp $(LDEPDIR) $(LDEPLIB) 
 	gcc -c -o $@ $< $(LDEPDIR) $(LDEPLIB)  
 

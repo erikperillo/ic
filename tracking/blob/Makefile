@@ -1,20 +1,17 @@
 CC = g++
 LDEPDIR += `pkg-config opencv --cflags`
 LDEPLIB += `pkg-config opencv --libs` 
-NAME = test
-OBJS = blob.o test.o
 DEPS = blob.hpp
 
-all: $(NAME)
+all: obj
 
-obj: blob.cpp $(DEPS) 
+obj: blob.o
+
+blob.o: blob.cpp $(DEPS) 
 	$(CC) -c -o blob.o blob.cpp 
 
-%.o: %.cpp $(LDEPDIR) $(LDEPLIB) $(DEPS)
-	$(CC) -c -o $@ $< $(LDEPDIR) $(LDEPLIB) 
-
-$(NAME): $(OBJS)
-	$(CC) -o $@ $^ $(LDEPDIR) $(LDEPLIB) 
+test: blob.o test.cpp
+	$(CC) -o test test.cpp blob.o $(LDEPDIR) $(LDEPLIB)  
 
 clean: 
 	rm -f $(NAME) *.o
