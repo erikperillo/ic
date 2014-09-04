@@ -1,0 +1,17 @@
+CC = g++
+LDEPDIR += `pkg-config opencv --cflags`
+LDEPLIB += `pkg-config opencv --libs` 
+NAME = test
+OBJS = grid.o test.o
+DEPS = grid.hpp
+
+all: %.o
+
+%.o: %.cpp $(LDEPDIR) $(LDEPLIB) $(DEPS)
+	$(CC) -c -o $@ $< $(LDEPDIR) $(LDEPLIB) 
+
+#$(NAME): $(OBJS)
+#	$(CC) -o $@ $^ $(LDEPDIR) $(LDEPLIB) 
+
+clean: 
+	rm -f $(NAME) *.o
