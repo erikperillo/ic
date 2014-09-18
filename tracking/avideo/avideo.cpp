@@ -1,197 +1,31 @@
-#include <SFML/Audio.hpp>
 #include <iostream>
 #include <fstream>
+#include <pthread.h>
+#include <SFML/Audio.hpp>
+#include "opencv2/opencv.hpp"
 #include "../blob/blob.hpp"
 #include "../grid/grid.hpp"
 #include "../ptcol/ptcol.hpp"
-#include "opencv2/opencv.hpp"
+#include "../.cfgen/cfgen.hpp"
 
 using namespace std;
 using namespace sf;
 using namespace cv;
 
-#define NSONGS     4
-#define NOTOBJ    -1
+#define NSONGSETS  4
 #define NBLOBS    32
 #define NPOINTS    4
 #define SIZE     500
 #define DELAY     10
 #define PLAYING    2
-
-#define LEN(x) (sizeof(x)/sizeof(x[0]))
-
-///////////////////////////////TEST
-#define HUE 0
-#define SAT 1
-#define VAL 2
-
-#define FRAME_W 0
-#define FRAME_H 1
-
-#define UPL_SONG 0
-#define UPR_SONG 1
-#define BTL_SONG 2
-#define BTR_SONG 3
-
 #define BUF_SIZE 1024
 #define NMAX_SONGS 16
-#define NMAX_CHARS 128
- 
-struct Args
-{
-   Range hsv[3];
-   int nsongs,cam_index,frame_dim[2];
-   char songs[4][NMAX_SONGS][NMAX_CHARS];
-   Args(): nsongs(0), cam_index(0) 
-   {
-      frame_dim[0] = frame_dim[1] = SIZE;
-      hsv[0] = hsv[1] = hsv[2] = Range(0,127);
-   }
-};
-
-int readConf(Args& args,const char* filename)
-{
-   char line[BUF_SIZE],*word,*line_args,garbage[100]; const char *delim = "    \n";
-   int count,i,nargs=0;
-   bool nsdef=false;
-	FILE * file = fopen(filename,"r");
-
-   if(file==NULL)
-      return -1;
-
-	while(fgets(line,BUF_SIZE,file)!=NULL)
-	{	
-      
-      word = strtok(line,delim);
-
-      if(word==NULL)
-         continue;
-
-      if(word[0]=='#')
-         continue;
-      
-      else if(strcmp(word,"hsv_low:")==0)
-      {
-         line_args = strtok(NULL,"\n");
-         if(sscanf(line_args,"%d %d %d",&args.hsv[0].start,&args.hsv[1].start,&args.hsv[2].start) != 3)
-            return -1;
-         nargs++;
-      }
-      else if(strcmp(word,"hsv_upp:")==0)
-      {
-         line_args = strtok(NULL,"\n");
-         if(sscanf(line_args,"%d %d %d",&args.hsv[0].end,&args.hsv[1].end,&args.hsv[2].end) != 3)
-            return -1;
-         nargs++;
-      }
-      else if(strcmp(word,"nsongs:")==0)
-      {
-         line_args = strtok(NULL,"\n");
-         if(sscanf(line_args,"%d",&args.nsongs) != 1)
-            return -1;
-         if(args.nsongs > NMAX_SONGS)
-            return -1;
-         nsdef = true;
-         nargs++;
-      }
-      else if(strcmp(word,"cam_index:")==0)
-      {
-         line_args = strtok(NULL,"\n");
-         if(sscanf(line_args,"%d",&args.cam_index) != 1)
-            return -1;
-      }
-      else if(strcmp(word,"frame_w:")==0)
-      {
-         line_args = strtok(NULL,"\n");
-         if(sscanf(line_args,"%d",&args.frame_dim[0]) != 1)
-            return -1;
-      }
-      else if(strcmp(word,"frame_h:")==0)
-      {
-         line_args = strtok(NULL,"\n");
-         if(sscanf(line_args,"%d",&args.frame_dim[1]) != 1)
-            return -1;
-      }
-      else if(strcmp(word,"songs_upl:")==0)
-      {
-         if(!nsdef)
-            return -1;
-         
-         for(i=0,word=strtok(NULL,delim); i<args.nsongs && word!=NULL; i++,word=strtok(NULL,delim))
-         {
-            if(sscanf(word,"%s",args.songs[0][i]) != 1)
-               return -1;
-         }
-         if(i != args.nsongs)
-            return -1;
-         nargs++;
-      }
-      else if(strcmp(word,"songs_upr:")==0)
-      {
-         if(!nsdef)
-            return -1;
-
-         for(i=0,word=strtok(NULL,delim); i<args.nsongs && word!=NULL; i++,word=strtok(NULL,delim))
-         {
-            if(sscanf(word,"%s",args.songs[1][i]) != 1)
-               return -1;
-         }
-         if(i != args.nsongs)
-            return -1;
-         nargs++;
-      }
-      else if(strcmp(word,"songs_btl:")==0)
-      {
-         if(!nsdef)
-            return -1;
-
-         for(i=0,word=strtok(NULL,delim); i<args.nsongs && word!=NULL; i++,word=strtok(NULL,delim))
-         {
-            if(sscanf(word,"%s",args.songs[2][i]) != 1)
-               return -1;
-         }
-         if(i != args.nsongs)
-            return -1;
-         nargs++;
-      }
-      else if(strcmp(word,"songs_btr:")==0)
-      {
-         if(!nsdef)
-            return -1;
-
-         for(i=0,word=strtok(NULL,delim); i<args.nsongs && word!=NULL; i++,word=strtok(NULL,delim))
-         {
-            if(sscanf(word,"%s",args.songs[3][i]) != 1)
-               return -1;
-         }
-         if(i != args.nsongs)
-            return -1;
-         nargs++;
-      }  
-   }
-
-   return ((nargs<7)?-1:1);
-}
-/////////////////////////////////TEST
 
 void err(const char* errmsg,int errcode=-1)
 {
    cout << errmsg << endl;
    exit(errcode);
 }
-/*
-void musicInfo(const Music& music)
-{
-   cout << "SampleRate: "      << music.GetSampleRate();
-   cout << "\nChannelsCount: " << music.GetChannelsCount();
-   cout << "\nStatus: "        << music.GetStatus();
-   cout << "\nLoop: "          << music.GetLoop();
-   cout << "\nPitch: "         << music.GetPitch();
-   cout << "\nVolume: "        << music.GetVolume();
-   cout << "\nDuration: "      << music.GetDuration();
-   cout << "\nOffset: "        << music.GetPlayingOffset() << endl;
-   return;
-}*/
 
 void gride(Mat& img,Scalar color=Scalar(255,0,0))
 {
@@ -205,46 +39,33 @@ int main(int argc, char** argv)
    if(argc != 2)
       err("Invalid arguments");
 
-   //parameters
-   Args params;
-   //reading configuration file
-   if(readConf(params,argv[1]) < 0)
-      err("Error while configuring!");
-
-   /////////////test
-/*
-   cout << "hsv start, end:" << params.hsv[0].start << "," << params.hsv[1].start << "," << params.hsv[2].start << " - " << params.hsv[0].end << "," << params.hsv[1].end << "," << params.hsv[2].end << endl; 
-   cout << "nsongs: " << params.nsongs << endl;
-   cout << "frame w,h: " << params.frame_dim[0] << "," << params.frame_dim[1] << endl;
-   for(int ct=0; ct<4; ct++) 
-      for(int k=0;k<params.nsongs;k++)
-      {
-         cout << "song[" << ct << "][" << k << "] = " << params.songs[ct][k] << endl;
-      }  */
-   /////////////test
-
    enum {upl,upr,btl,btr};
-   int i,j,ind=0,last_ind=0,nblobs,count=0,randind;
+   int i,j,randind,nsongs,nblobs,cam_index=0,ind=0,last_ind=0,count=0,
+       frame_dim[2] = {SIZE, SIZE}, 
+       hsv_low[3] = {0, 0, 0}, 
+       hsv_upp[3] = {127, 255, 255};
    float duration;
-   char wk, *filename = argv[1];
+   char wk, *filename = argv[1]; 
    ifstream file;
    //window name and songs array
-   const char* winname = "image", *binname = "binary", *songs[] = {"song1.wav","song2.wav","song3.wav","song4.wav"};
+   const char* winname = "image", *binname = "binary";
+   //vectors of chars
+   vector<string> songs[4];
    //color definitions
    Scalar red(0,0,255), green(0,255,0), blue(255,0,0), gray(128,128,128);
    //color hsv values
-   Range hue(0,4),sat(130,255),val(0,255), cands[NBLOBS][2];
+   Range cands[NBLOBS][2],hsv[3];
    //point
    Point pt(0,0),pts[NPOINTS];
    //points for homography transform
-   Point2f _dst[] = {Point2f(0,params.frame_dim[0]),Point2f(params.frame_dim[0],params.frame_dim[1]),Point2f(params.frame_dim[0],0),Point2f(0,0)};
+   Point2f _dst[] = {Point2f(0,frame_dim[0]),Point2f(frame_dim[0],frame_dim[1]),Point2f(frame_dim[0],0),Point2f(0,0)};
    vector<Point2f> src,dst;
    //images
    Mat frame,bin,H;
    //object for capturing video
    VideoCapture cap;
    //audio files
-   Music music[NSONGS][NMAX_SONGS];
+   Music music[NSONGSETS][NMAX_SONGS];
    //time for when the music will start
    Time start;
    //blobs
@@ -252,6 +73,41 @@ int main(int argc, char** argv)
    bl[0] = blob(Range(10,20),Range(30,40));
    //arguments for point collection
    ptColArgs pca(pts);
+   //config struct
+   Conf conf(filename);
+
+   //configuring everything
+   conf.acquire("nsongs",1,"%d",&nsongs);
+   conf.acquire("cam_index",0,"%d",&cam_index);
+   conf.acquire("frame_w",1,"%d",&frame_dim[0]);
+   conf.acquire("frame_h",1,"%d",&frame_dim[1]);
+   conf.acquire("hsv_low",3,"%d %d %d",&hsv[0].start,&hsv[1].start,&hsv[2].start);
+   conf.acquire("hsv_upp",3,"%d %d %d",&hsv[0].end,&hsv[1].end,&hsv[2].end);
+   conf.vacquire<string>("songs_upl",nsongs,songs[0]);
+   conf.vacquire<string>("songs_upr",nsongs,songs[1]);
+   conf.vacquire<string>("songs_btl",nsongs,songs[2]);
+   conf.vacquire<string>("songs_btr",nsongs,songs[3]);
+
+   ////////////////////////////////debug
+   cout << "Everything configured. Summing up:" << endl;
+   cout << "nsongs = " << nsongs << endl;
+   cout << "cam_index = " << cam_index << endl;
+   cout << "frame_w, frame_h = " << frame_dim[0] << ", " << frame_dim[1] << endl;
+   cout << "hsv_low = " << hsv[0].start << ", " << hsv[1].start << ", " << hsv[2].start << endl;
+   cout << "hsv_upp = " << hsv[0].end << ", " << hsv[1].end << ", " << hsv[2].end << endl;
+   cout << "songs_upl: " << endl;
+   for(i=0;i<nsongs;i++)
+      cout << "   " << i << " - " << songs[0][i] << endl; 
+   cout << "songs_upr: " << endl;
+   for(i=0;i<nsongs;i++)
+      cout << "   " << i << " - " << songs[1][i] << endl;
+   cout << "songs_btl: " << endl;
+   for(i=0;i<nsongs;i++)
+      cout << "   " << i << " - " << songs[2][i] << endl;
+   cout << "songs_btr: " << endl;
+   for(i=0;i<nsongs;i++)
+      cout << "   " << i << " - " << songs[3][i] << endl; 
+   /////////////////////////////////debug  
 
    //setting random
    srand(time(NULL));
@@ -261,16 +117,16 @@ int main(int argc, char** argv)
       dst.push_back(_dst[i]);
 
    //initializating audio files 
-   for(i=0;i<NSONGS;i++)
-      for(j=0;j<params.nsongs;j++)      
-         if(!music[i][j].openFromFile(params.songs[i][j]))
+   for(i=0;i<NSONGSETS;i++)
+      for(j=0;j<nsongs;j++)      
+         if(!music[i][j].openFromFile(songs[i][j]))
             err("ERROR: One of the songs could not be loaded!");
 
    //creating window
    namedWindow(winname,CV_WINDOW_AUTOSIZE);
 
    //opening camera
-   cap.open(params.cam_index);
+   cap.open(cam_index);
    if(!cap.isOpened())
       err("ERROR: Camera could not be opened!");
 
@@ -316,7 +172,7 @@ int main(int argc, char** argv)
    //calculating homography
    H = findHomography(src,dst);   
    //creating grid
-   grid dirg(Mat::zeros(params.frame_dim[1],params.frame_dim[0],CV_8UC3),64);
+   grid dirg(Mat::zeros(frame_dim[1],frame_dim[0],CV_8UC3),64);
 
    //video loop
    while(true)
@@ -327,11 +183,11 @@ int main(int argc, char** argv)
          err("ERROR: frame capture error");
 
       //warping image acording to homography
-      warpPerspective(frame,frame,H,Size(params.frame_dim[0],params.frame_dim[1]));
+      warpPerspective(frame,frame,H,Size(frame_dim[0],frame_dim[1]));
 
       //locating object 
       cvtColor(frame,bin,CV_BGR2HSV);
-	   inRange(bin,Scalar(params.hsv[0].start,params.hsv[1].start,params.hsv[2].start),Scalar(params.hsv[0].end,params.hsv[1].end,params.hsv[2].end),bin);
+	   inRange(bin,Scalar(hsv[0].start,hsv[1].start,hsv[2].start),Scalar(hsv[0].end,hsv[1].end,hsv[2].end),bin);
       nblobs = dirg.locate(bin,cands);
 
       if(nblobs>0)
@@ -367,15 +223,15 @@ int main(int argc, char** argv)
          }
 
          if(ind != last_ind)
-            for(i=0; i<params.nsongs; i++)
+            for(i=0; i<nsongs; i++)
                music[last_ind][i].stop();
          else
-            for(i=0; i<params.nsongs; i++)
+            for(i=0; i<nsongs; i++)
                if(music[ind][i].getStatus() == PLAYING)
                   break;
-         if(i==params.nsongs)
+         if(i==nsongs)
          {
-            randind = rand() % params.nsongs;
+            randind = rand() % nsongs;
             duration = music[ind][randind].getDuration().asSeconds();
             start = seconds((duration > 30.0)?(duration*0.01*(rand() % 90)):0.0);
             music[ind][randind].setPlayingOffset(start);
@@ -385,7 +241,7 @@ int main(int argc, char** argv)
          last_ind = ind;
       }
       else     
-         for(i=0; i<params.nsongs; i++)
+         for(i=0; i<nsongs; i++)
             music[last_ind][i].stop();      
 
       //displaying images
