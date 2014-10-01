@@ -3,14 +3,14 @@ hsv_low: 0 90 47
 hsv_upp: 179 180 230
 
 #camera index
-cam_index: 1
+cam_index: 0
 
 #dimensions of frame
 frame_w: 600
 frame_h: 600
 
 #number of songs per square
-nsongs: 7
+nsongs: 0
 
 #songs per se
 songs_upl: notes/C4_ACPIANO.wav notes/D4_ACPIANO.wav notes/E4_ACPIANO.wav notes/F4_ACPIANO.wav notes/G4_ACPIANO.wav notes/A4_ACPIANO.wav notes/B4_ACPIANO.wav  

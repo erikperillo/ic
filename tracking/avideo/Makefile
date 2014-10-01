@@ -1,6 +1,6 @@
 CC = g++
 LDEPDIR += `pkg-config opencv --cflags` 
-LDEPLIB += `pkg-config opencv --libs` -lsfml-audio -lpthread
+LDEPLIB += `pkg-config opencv --libs` -lsfml-audio -lsfml-system -lpthread
 NAME = avideo
 OBJS = ../blob/blob.o ../grid/grid.o ../ptcol/ptcol.o ../.cfgen/cfgen.o
 

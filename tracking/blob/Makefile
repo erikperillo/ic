@@ -1,7 +1,7 @@
 CC = g++
 LDEPDIR += `pkg-config opencv --cflags`
 LDEPLIB += `pkg-config opencv --libs` 
-DEPS = blob.hpp
+DEPS = blob.hpp colors.hpp
 
 all: obj
 

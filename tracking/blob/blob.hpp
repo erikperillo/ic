@@ -1,8 +1,9 @@
 #ifndef _BLOB_HEADER_
 #define _BLOB_HEADER_
 
-#include "opencv2/opencv.hpp"
 #include <iostream>
+#include "opencv2/opencv.hpp"
+#include "colors.hpp"
 
 //blob class
 class blob
@@ -15,7 +16,7 @@ class blob
    blob(const cv::Range& _x,const cv::Range& _y): x(_x), y(_y) {;}        //constructor
    cv::Point point();                                                     //returns central point
    int area();                                                            //calculates area of object
-   int mark(cv::Mat&,const cv::Scalar& color=cv::Scalar(0,0,255));        //marks object in image
+   int mark(cv::Mat&,const cv::Scalar& color=cv::RED);                   //marks object in image
    friend std::ostream& operator<<(std::ostream&,blob&);                  //operator
 };
 
