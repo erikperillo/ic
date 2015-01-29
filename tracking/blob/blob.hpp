@@ -2,6 +2,7 @@
 #define _BLOB_HEADER_
 
 #include "opencv2/opencv.hpp"
+#include "colors.hpp"
 #include <iostream>
 
 //blob class

@@ -1,11 +1,20 @@
 #include <iostream>
 #include "blob.hpp"
+#include "colors.hpp"
 
 using namespace std;
 using namespace cv;
 
 int main()
 {
+	Scalar scalar(0,1,2);
+	for(int i=0; i<16; i++)
+	{
+		scalar = COLOR(i);
+		cout << "COLOR(" << i << ") = " << scalar << endl;
+	}
+
+	return 0;
    blob bl0(Range(1,2),Range(1,7)),bl1(Range(50,150),Range(80,190)),bl2(Range(2,5),Range(8,11)),bl3(Range(15,21),Range(18,41));
    blob array[] = {bl0,bl1,bl2,bl3};
 
