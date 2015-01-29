@@ -25,7 +25,7 @@ $(SRC_DIR)/ptcol/ptcol.o:
 	cd $(SRC_DIR)/ptcol/ && make
 
 $(SRC_DIR)/obj/obj.o:
-	cd $(SRC_DIR)/obj/ && make
+	cd $(SRC_DIR)/obj/ && make obj.o
 
 $(SRC_DIR)/clarg/clarg.o:
 	cd $(SRC_DIR)/clarg/ && make clarg.o
