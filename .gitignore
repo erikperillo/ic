@@ -6,6 +6,7 @@
 !*.hpp
 !*.tpp
 !*.cfg
+!README
 !Makefile
 # etc...
 

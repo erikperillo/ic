@@ -232,6 +232,9 @@ int main(int argc, char** argv)
 	//reading configuration file
 	if(readConf(params,argv[1],debug) < 0)
 		err("Error while configuring!");
+
+	//mute sound?
+	bool mute = (container.parse<bool>(clarg::Clarg("-m --mute","play no songs at all")) || params.nsongs < 1);
 	
 	//debug
 	if(debug)
@@ -241,6 +244,7 @@ int main(int argc, char** argv)
 		cout << "cam_index: " << params.cam_index << endl;
 		cout << "nsongs: " << params.nsongs << endl;
 		cout << "frame w,h: " << params.frame_dim[0] << "," << params.frame_dim[1] << endl;
+		cout << "mute: " << (mute?"true":"false)") << endl;
 		for(int i=0; i<params.nobjs; i++)
 		{
 			cout << "object " << i+1 << ":" << endl;
@@ -310,7 +314,7 @@ int main(int argc, char** argv)
 	for(i=0; i<params.nobjs; i++)
      	for(j=0; j<NAREAS; j++)
           	for(k=0;k<params.nsongs;k++)
-               	if(!music[i][j][k].openFromFile(params.songs[i][j][k]))
+               	if(!music[i][j][k].openFromFile(params.songs[i][j][k]) && !mute)
                     	err("ERROR: One of the songs could not be loaded!");
 
 	//generating objects colors
@@ -413,47 +417,51 @@ int main(int argc, char** argv)
 				bl[0].mark(frame,COLOR(i));
 				bl[0].mark(bin_res,COLOR(i)); 
 				sprintf(obj_pos_str,"Object %2d: x = %5d , y = %5d",i+1,bl[0].point().x,bl[0].point().y);
-			     //determining which music to play
-				if(bl[0].point().x < frame.cols/2 && bl[0].point().y < frame.rows/2)
+			  	if(!mute)
 				{
-					ind = upl;
-				}
-				else if(bl[0].point().x < frame.cols/2)
-				{
-					ind = btl;
-				}
-				else if(bl[0].point().y < frame.rows/2)
-				{
-					ind = upr;
-				}
-				else
-				{
-					ind = btr;
-				}
+					//determining which music to play
+					if(bl[0].point().x < frame.cols/2 && bl[0].point().y < frame.rows/2)
+					{
+						ind = upl;
+					}
+					else if(bl[0].point().x < frame.cols/2)
+					{
+						ind = btl;
+					}
+					else if(bl[0].point().y < frame.rows/2)
+					{
+						ind = upr;
+					}
+					else
+					{
+						ind = btr;
+					}
 
-				if(ind != last_ind[i])
-					for(j=0; j<params.nsongs; j++)
-						music[i][last_ind[i]][j].stop();
-				else
-					for(j=0; j<params.nsongs; j++)
-						if(music[i][ind][j].getStatus() == PLAYING)
-							break;
-				if(j == params.nsongs)
-				{
-					randind = rand() % params.nsongs;
-					duration = music[i][ind][randind].getDuration().asSeconds();
-					start = seconds((duration > 30.0 && params.randomize)?(duration*0.01*(rand() % 90)):0.0);
-					music[i][ind][randind].setPlayingOffset(start);
-					music[i][ind][randind].play();
-				}
+					if(ind != last_ind[i])
+						for(j=0; j<params.nsongs; j++)
+							music[i][last_ind[i]][j].stop();
+					else
+						for(j=0; j<params.nsongs; j++)
+							if(music[i][ind][j].getStatus() == PLAYING)
+								break;
+					if(j == params.nsongs)
+					{
+						randind = rand() % params.nsongs;
+						duration = music[i][ind][randind].getDuration().asSeconds();
+						start = seconds((duration > 30.0 && params.randomize)?(duration*0.01*(rand() % 90)):0.0);
+						music[i][ind][randind].setPlayingOffset(start);
+						music[i][ind][randind].play();
+					}
 
-				last_ind[i] = ind;
+					last_ind[i] = ind;
+				}
 			}
 			else
 			{
 				sprintf(obj_pos_str,"Object %2d: x = - , y = -",i+1); 
-				for(j=0; j<params.nsongs; j++)
-					music[i][last_ind[i]][j].stop();		
+				if(!mute)
+					for(j=0; j<params.nsongs; j++)
+						music[i][last_ind[i]][j].stop();		
 			}
 			putText(obj_loc,obj_pos_str,Point(5,i*15+10),FONT_HERSHEY_SIMPLEX,0.4,Scalar(255,255,255));
 		}

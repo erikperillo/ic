@@ -1,0 +1,35 @@
+TRACKING - REAL TIME TRACKING OF MULTIPLE OBJECTS
+
+v0.0.1
+Erik Perillo - CTI Renato Archer - 2015
+
+Description:
+	The development of this platform aims at having a fully functional and fast tool for real-time tracking of multiple objects. At the time of this writing, The 2D tracking of multiple (up to 16) objects based on their color is already possible. An demo application is also provided, in which positions of objects on a plane can be related to multiple sounds of any nature. Final goals for the tool include allowing 3D tracking and support for new object identification methods other than using its colours.
+
+Software:
+	Tracking is fully written in C++, due to it's speed and object-oriented paradigm. It was entirely built in a GNU/Linux environment, having no warranty to work on other platforms.
+	It depends on the following packages:
+		-OpenCV 2.4 or higher (libopencv-dev for Debian-based GNU/Linux distros)
+		-SFML 2.0 or higher (libsfml-dev for Debian-based GNU/Linux distros)
+
+How to use:
+	Suppose you have an orange robot and wants it to be tracked in 2D. 
+
+	You are going to need:
+	-A webcam (preferably a good one);
+	-An colored object;
+	-A rectangular delimited planar surface on which the object will be and can be distinguished from the surface's colors.
+
+	You are going to have to:
+	-Calibrate color to be tracked. In order to track the object, you must determine its color to be identified. Current implementation requires three ranges in HSV colorspace: hue, saturation and value. With these values (initial and final for each, creating then three ranges), the program can do a simple threshold, that is, everything within that range is seen, the rest is just ignored. There's been implemented a tool for this named "colclb". It's use is intuitive and running "colclb --help" describes possible actions.
+	-Point camera to planar surface. The camera does not to be at any particular position. All it needs is to point to the whole delimited rectangular area.
+	-Run application. For this case, the application "mul_objs" will be run (found in the directory 'apps'). 'mul_objs' can associate quarters of the rectangle the object is on to pre-determined songs. You have to specify by hand the HSV attributes of your object and the songs you want to play of each object in a configuration file. An example 'config.cfg' is available and it describes exactly how to set all parameters. The command will then be:
+		$mul_objs <config_file> [otpional args]
+	As optional args, there is "-m" or "--mute" for playing no sound (you can also do this by setting n_songs to 0 in the config file) and "-d" or "--debug" for running program with some aditional outputs that can be helpful in debbuging.
+	Within the application, you must see your webcam image in real time. Now, do the following:
+	-Press 'p' at any moment to stop webcam streaming
+	-Use mouse and click on the four points of your rectangular area that represent the points (0,0), (MAX_X,O), (MAX_X,MAX_Y), (MAX_Y,0), in this respective order.
+	-Press 'enter' and you now are ready to track. The original image is displayed along with a binary image and a tiny window showing each object's position in the surface. Press 'Esc' at any moment to quit.
+
+WARNING:
+	This is a very early and experimental version of the tool. Bugs can exist (and for sure they exist). Inform bugs, give suggestions or solve doubts with Erik Perillo <erik.perillo@gmail.com>
