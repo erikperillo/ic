@@ -1,5 +1,13 @@
+# Ignore everything
+*
 
+# But not these files...
 !*.cpp
 !*.hpp
+!*.tpp
+!*.cfg
 !Makefile
-*
+# etc...
+
+# ...even if they are in subdirectories
+!*/
